@@ -1,6 +1,5 @@
 import socket
 import threading
-import json
 import time
 from datetime import datetime
 
