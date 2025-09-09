@@ -2,6 +2,7 @@ import socket
 import threading
 import json
 import time
+from datetime import datetime
 
 class ServidorChat:
     def __init__(self, host='localhost', puerto=12345):
@@ -10,6 +11,10 @@ class ServidorChat:
         self.socket_servidor = None
         self.clientes = {}  # {nombre: {'socket': socket_obj, 'ip': direccion, 'conectado': True}}
         self.ejecutando = True
+        
+        # NUEVO: Historial de mensajes del chat general
+        self.historial_general = []  # Lista de mensajes del chat general
+        self.max_historial = 50  # Máximo de mensajes a mantener
         
     def iniciar_servidor(self):
         """Inicia el servidor con protocolo personalizado"""
@@ -21,6 +26,7 @@ class ServidorChat:
             
             print(f"🚀 Servidor de chat iniciado en {self.host}:{self.puerto}")
             print("📡 Protocolo personalizado activado")
+            print("📜 Historial de chat general habilitado")
             print("💡 Presiona Ctrl+C para detener")
             
             while self.ejecutando:
@@ -76,6 +82,9 @@ class ServidorChat:
             if nombre_cliente and nombre_cliente in self.clientes:
                 del self.clientes[nombre_cliente]
                 print(f"👋 {nombre_cliente} se desconectó")
+                
+                # NUEVO: Notificar salida del usuario
+                self.notificar_usuario_salio(nombre_cliente)
                 # Notificar a todos sobre la desconexión
                 self.notificar_cambio_usuarios()
             
@@ -100,6 +109,10 @@ class ServidorChat:
             
             elif comando == "GET_USERS":
                 return self.enviar_lista_usuarios(cliente_socket)
+            
+            # NUEVO: Comando para obtener historial
+            elif comando == "GET_HISTORY":
+                return self.enviar_historial_general(cliente_socket)
             
             elif comando == "PING":
                 cliente_socket.send("PONG".encode('utf-8'))
@@ -134,6 +147,9 @@ class ServidorChat:
         
         print(f"✅ {nombre} registrado desde {direccion}")
         cliente_socket.send("SUCCESS|Conectado exitosamente".encode('utf-8'))
+        
+        # NUEVO: Notificar entrada del usuario a todos los demás
+        self.notificar_usuario_entro(nombre)
         
         # Notificar a todos los clientes sobre el nuevo usuario
         self.notificar_cambio_usuarios()
@@ -173,6 +189,20 @@ class ServidorChat:
         
         print(f"📢 {remitente} (general): {mensaje}")
         
+        # NUEVO: Agregar mensaje al historial
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        mensaje_con_timestamp = {
+            'timestamp': timestamp,
+            'remitente': remitente,
+            'mensaje': mensaje
+        }
+        
+        self.historial_general.append(mensaje_con_timestamp)
+        
+        # Mantener solo los últimos N mensajes
+        if len(self.historial_general) > self.max_historial:
+            self.historial_general.pop(0)
+        
         # Enviar a todos los clientes conectados
         mensaje_formateado = f"BROADCAST_MSG|{remitente}|{mensaje}"
         clientes_desconectados = []
@@ -201,6 +231,19 @@ class ServidorChat:
         mensaje = f"USER_LIST|{lista_usuarios}"
         cliente_socket.send(mensaje.encode('utf-8'))
     
+    def enviar_historial_general(self, cliente_socket):
+        """NUEVO: Envía el historial del chat general al cliente"""
+        try:
+            for msg in self.historial_general:
+                mensaje_formateado = f"HISTORY_MSG|{msg['remitente']}|{msg['mensaje']}"
+                cliente_socket.send(mensaje_formateado.encode('utf-8'))
+                time.sleep(0.01)  # Pequeña pausa para evitar saturar
+            
+            # Señal de fin de historial
+            cliente_socket.send("HISTORY_END|".encode('utf-8'))
+        except Exception as e:
+            print(f"❌ Error enviando historial: {e}")
+    
     def notificar_cambio_usuarios(self):
         """Notifica a todos los clientes sobre cambios en la lista de usuarios"""
         usuarios = list(self.clientes.keys())
@@ -217,6 +260,39 @@ class ServidorChat:
         # Limpiar clientes desconectados
         for nombre in clientes_desconectados:
             del self.clientes[nombre]
+    
+    def notificar_usuario_entro(self, nombre_usuario):
+        """NUEVO: Notifica a todos que un usuario se unió al chat"""
+        mensaje = f"USER_JOINED|{nombre_usuario}"
+        clientes_desconectados = []
+        
+        for nombre, info in self.clientes.items():
+            if nombre != nombre_usuario:  # No notificar al usuario que acaba de entrar
+                try:
+                    info['socket'].send(mensaje.encode('utf-8'))
+                except:
+                    clientes_desconectados.append(nombre)
+        
+        # Limpiar clientes desconectados
+        for nombre in clientes_desconectados:
+            del self.clientes[nombre]
+    
+    def notificar_usuario_salio(self, nombre_usuario):
+        """NUEVO: Notifica a todos que un usuario salió del chat"""
+        mensaje = f"USER_LEFT|{nombre_usuario}"
+        clientes_desconectados = []
+        
+        for nombre, info in self.clientes.items():
+            if nombre != nombre_usuario:  # Por si acaso
+                try:
+                    info['socket'].send(mensaje.encode('utf-8'))
+                except:
+                    clientes_desconectados.append(nombre)
+        
+        # Limpiar clientes desconectados
+        for nombre in clientes_desconectados:
+            if nombre in self.clientes:
+                del self.clientes[nombre]
     
     def detener_servidor(self):
         """Detiene el servidor y cierra todas las conexiones"""
