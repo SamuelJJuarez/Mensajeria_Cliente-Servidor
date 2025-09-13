@@ -70,6 +70,7 @@ PING
 
 **Comandos declarados para las respuestas servidor-cliente**
 _Respuestas de confirmación_
+
 1. SUCCESS - Operación exitosa
 SUCCESS|mensaje_descriptivo
 
@@ -83,6 +84,7 @@ ERROR|descripción_del_error
 - Ejemplo: ERROR|Usuario no encontrado o desconectado
 
 _Mensajes de datos_
+
 3. USER_LIST / USER_UPDATE - Lista de usuarios
 USER_LIST|usuario1,usuario2,usuario3
 USER_UPDATE|usuario1,usuario2,usuario3
@@ -112,6 +114,7 @@ HISTORY_END|
 - Indica que se terminó de enviar el historial
 
 _Notificaciones del sistema_
+
 8. USER_JOINED - Usuario Se unió al chat
 USER_JOINED|nombre_usuario
 
