@@ -73,7 +73,6 @@ class ClienteChat:
     # valida que sean correctos y llama a `conectar_servidor`.
     # Si se conecta con éxito, abre la ventana principal del chat.
     def intentar_conexion(self, ventana_conexion):
-        """Intenta conectarse al servidor con los datos ingresados"""
         nombre = self.entry_nombre.get().strip()
         ip = self.entry_ip.get().strip()
         puerto = self.entry_puerto.get().strip()
@@ -103,7 +102,6 @@ class ClienteChat:
     # - Espera respuesta `SUCCESS`.
     # - Si es exitosa, arranca un hilo para recibir mensajes en segundo plano.
     def conectar_servidor(self):
-        """Conecta al servidor usando nuestro protocolo"""
         try:
             self.socket_cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket_cliente.connect((self.host_servidor, self.puerto_servidor))
@@ -127,7 +125,6 @@ class ClienteChat:
     # - Solicita la lista de usuarios y el historial.
     # - Arranca actualizaciones periódicas de la lista de usuarios.
     def mostrar_ventana_chat(self):
-        """Muestra la ventana principal del chat"""
         self.root = tk.Tk()
         self.root.title(f"💬 Chat - {self.nombre_usuario}")
         self.root.geometry("800x600")
@@ -142,7 +139,6 @@ class ClienteChat:
     # - Panel izquierdo con lista de usuarios conectados.
     # - Panel derecho con selector de chat (general o privado), área de mensajes y caja de envío.
     def crear_interfaz_chat(self):
-        """Crea la interfaz gráfica del chat"""
         frame_principal = tk.Frame(self.root)
         frame_principal.pack(fill="both", expand=True, padx=10, pady=10)
         frame_usuarios = tk.LabelFrame(frame_principal, text="👥 Usuarios Conectados", 
@@ -196,7 +192,6 @@ class ClienteChat:
     # Hilo que se mantiene escuchando mensajes del servidor.
     # Cuando recibe uno, lo pasa a `procesar_mensaje_recibido`.
     def recibir_mensajes(self):
-        """Hilo para recibir mensajes del servidor"""
         while self.conectado:
             try:
                 mensaje = self.socket_cliente.recv(4096).decode('utf-8')
@@ -219,7 +214,6 @@ class ClienteChat:
     # - `USER_JOINED` y `USER_LEFT`: notificaciones de usuarios.
     # - `SUCCESS` y `ERROR`: confirmaciones o errores.
     def procesar_mensaje_recibido(self, mensaje):
-        """Procesa mensajes recibidos según nuestro protocolo"""
         try:
             partes = mensaje.split('|', 2)
             comando = partes[0] 
@@ -256,7 +250,6 @@ class ClienteChat:
 
     # Actualiza la lista de usuarios conectados en el ListBox y en el Combobox de destinatarios
     def actualizar_lista_usuarios(self, usuarios_texto):
-        """Actualiza la lista de usuarios conectados"""
         if not self.usuarios_listbox:
             return
         usuarios = [u.strip() for u in usuarios_texto.split(',') if u.strip()]
@@ -264,7 +257,6 @@ class ClienteChat:
     
     # Método interno para refrescar la lista de usuarios y marcar cuáles tienen mensajes nuevos.
     def _actualizar_listbox_usuarios(self, usuarios):
-        """Actualiza el listbox de usuarios (debe ejecutarse en hilo principal)"""
         self.usuarios_listbox.delete(0, tk.END)
         otros_usuarios = [u for u in usuarios if u != self.nombre_usuario]
         for usuario in otros_usuarios:
@@ -284,7 +276,6 @@ class ClienteChat:
     # - Marca al remitente con notificación si no estamos viendo su chat.
     # - Si estamos en su chat, actualiza el área de mensajes.
     def recibir_mensaje_privado(self, remitente, contenido):
-        """Maneja mensajes privados recibidos"""
         if remitente not in self.mensajes_privados:
             self.mensajes_privados[remitente] = []
         timestamp = time.strftime("%H:%M:%S")
@@ -300,7 +291,6 @@ class ClienteChat:
     
     # Agrega un mensaje al chat general y actualiza la vista si está abierto.
     def recibir_mensaje_general(self, remitente, contenido):
-        """Maneja mensajes del chat general"""
         timestamp = time.strftime("%H:%M:%S")
         mensaje_formateado = f"[{timestamp}] {remitente}: {contenido}"
         self.mensajes_generales.append(mensaje_formateado)
@@ -309,7 +299,6 @@ class ClienteChat:
             
     # Carga mensajes antiguos (historial) enviados por el servidor.
     def recibir_mensaje_historial(self, remitente, contenido):
-        """NUEVO: Maneja mensajes del historial"""
         timestamp = time.strftime("%H:%M:%S")  # Usamos timestamp actual por simplicidad
         mensaje_formateado = f"[{timestamp}] {remitente}: {contenido}"
         self.mensajes_generales.append(mensaje_formateado)
@@ -322,7 +311,6 @@ class ClienteChat:
 
     # Muestra una notificación cuando un usuario se conecta al chat.
     def mostrar_notificacion_usuario_entro(self, nombre_usuario):
-        """NUEVO: Muestra notificación cuando un usuario se une"""
         mensaje = f"✅ {nombre_usuario} se unió al chat"
         self.root.after(0, lambda: self.actualizar_notificacion_temporal(mensaje, "green"))
         timestamp = time.strftime("%H:%M:%S")
@@ -333,7 +321,6 @@ class ClienteChat:
 
     # Muestra una notificación cuando un usuario se desconecta.
     def mostrar_notificacion_usuario_salio(self, nombre_usuario):
-        """NUEVO: Muestra notificación cuando un usuario sale"""
         mensaje = f"❌ {nombre_usuario} salió del chat"
         self.root.after(0, lambda: self.actualizar_notificacion_temporal(mensaje, "red"))
         timestamp = time.strftime("%H:%M:%S")
@@ -346,7 +333,6 @@ class ClienteChat:
 
     # Muestra una ventana emergente cuando llega un mensaje privado nuevo.
     def mostrar_notificacion_mensaje_privado(self, remitente):
-        """NUEVO: Muestra notificación emergente para mensaje privado"""
         def crear_notificacion():
             if self.ventana_notificacion:
                 try:
@@ -380,7 +366,6 @@ class ClienteChat:
     
     # Cambia la vista al chat privado con el usuario seleccionado y marca sus mensajes como leídos.
     def ir_a_chat_privado(self, nombre_usuario):
-        """NUEVO: Cambia al chat privado con un usuario específico"""
         if self.ventana_notificacion:
             self.ventana_notificacion.destroy()
         self.destinatario_var.set(f"👤 {nombre_usuario}")
@@ -391,7 +376,6 @@ class ClienteChat:
 
     # Muestra un mensaje breve en el área de notificaciones (ej. usuario entró o salió).
     def actualizar_notificacion_temporal(self, mensaje, color):
-        """NUEVO: Actualiza el label de notificaciones temporalmente"""
         if self.label_notificaciones:
             self.label_notificaciones.config(text=mensaje, fg=color)
             self.root.after(3000, lambda: self.label_notificaciones.config(text=""))
@@ -399,7 +383,6 @@ class ClienteChat:
     # Se ejecuta al cambiar el destinatario en el ComboBox.
     # Marca como leídos los mensajes del usuario seleccionado.
     def cambiar_chat(self, event=None):
-        """Cambia entre diferentes chats"""
         destinatario = self.destinatario_var.get()
         if destinatario.startswith("🔴 "):
             nombre_usuario = destinatario.replace("🔴 ", "")
@@ -412,7 +395,6 @@ class ClienteChat:
     # - Mensajes del chat general.
     # - Mensajes privados con el usuario seleccionado.
     def actualizar_area_chat(self):
-        """Actualiza el área de mensajes según el chat seleccionado"""
         if not self.chat_text:
             return
         destinatario = self.destinatario_var.get()
@@ -444,7 +426,6 @@ class ClienteChat:
     # - Si es privado → comando `MESSAGE|destinatario|mensaje`.
     # También lo agrega a la vista local.
     def enviar_mensaje(self):
-        """Envía mensaje según el destinatario seleccionado"""
         if not self.conectado:
             return
         mensaje = self.mensaje_entry.get().strip()
@@ -482,7 +463,6 @@ class ClienteChat:
     
     # Envía comando `GET_USERS` al servidor para obtener la lista de usuarios conectados.
     def solicitar_usuarios(self):
-        """Solicita la lista de usuarios al servidor"""
         if self.conectado:
             try:
                 self.socket_cliente.send("GET_USERS|".encode('utf-8'))
@@ -491,7 +471,6 @@ class ClienteChat:
     
     # Envía comando `GET_HISTORY` al servidor para obtener los últimos mensajes del chat general.
     def solicitar_historial(self):
-        """NUEVO: Solicita el historial del chat general"""
         if self.conectado:
             try:
                 self.socket_cliente.send("GET_HISTORY|".encode('utf-8'))
@@ -500,14 +479,12 @@ class ClienteChat:
     
     # Cada 3 segundos pide al servidor la lista actualizada de usuarios.
     def actualizar_usuarios_periodicamente(self):
-        """Actualiza la lista de usuarios cada pocos segundos"""
         if self.conectado:
             self.solicitar_usuarios()
             self.root.after(3000, self.actualizar_usuarios_periodicamente)
     
     # Muestra un cuadro de diálogo emergente con un mensaje de error.
     def mostrar_error(self, mensaje):
-        """Muestra un error al usuario"""
         self.root.after(0, lambda: messagebox.showerror("Error", mensaje))
     
     # Cierra correctamente la aplicación:
@@ -516,7 +493,6 @@ class ClienteChat:
     # - Cierra el socket.
     # - Destruye la ventana principal.
     def cerrar_aplicacion(self):
-        """Cierra la aplicación correctamente"""
         self.conectado = False
         if self.ventana_notificacion:
             try:
