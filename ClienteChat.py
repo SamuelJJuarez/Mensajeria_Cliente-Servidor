@@ -40,7 +40,6 @@ class ClienteChat:
     # - Puerto del servidor.
     # Permite intentar la conexión con un botón o presionando Enter.
     def mostrar_ventana_conexion(self):
-        """Muestra la ventana inicial para configurar la conexión"""
         ventana_conexion = tk.Tk()
         ventana_conexion.title("🔗 Conectar al Chat")
         ventana_conexion.geometry("400x300")
