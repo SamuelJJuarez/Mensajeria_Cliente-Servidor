@@ -8,7 +8,7 @@ class ServidorChat:
         self.host = host
         self.puerto = puerto
         self.socket_servidor = None
-        self.clientes = {}  # {nombre: {'socket': socket_obj, 'ip': direccion, 'conectado': True}}
+        self.clientes = {}  #{nombre: {'socket': socket_obj, 'ip': direccion, 'conectado': True}}
         self.ejecutando = True
         
         # NUEVO: Historial de mensajes del chat general
