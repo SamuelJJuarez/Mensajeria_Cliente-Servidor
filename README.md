@@ -69,6 +69,7 @@ PING
 
 
 **Comandos declarados para las respuestas servidor-cliente**
+
 _Respuestas de confirmación_
 
 1. SUCCESS - Operación exitosa
@@ -127,6 +128,7 @@ USER_LEFT|nombre_usuario
 
 
 **Flujos de comunicación de los comandos**
+
 _Flujo de conexión inicial_
 1. Cliente → Servidor: CONNECT|Juan
 2. Servidor → Cliente: SUCCESS|Conectado exitosamente
