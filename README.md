@@ -1,7 +1,10 @@
 # Mensajeria_Cliente-Servidor
 **Actividad realizada por:**
+
 _Samuel Jafet Juárez Baliño_
+
 _Leonardo Daniel Rosas Pérez_
+
 _José Jesús González Gallegos_
 
 **Programa a realizar:**
